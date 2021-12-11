@@ -1,26 +1,19 @@
 import os
-import platform
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from torch.autograd import Function
 from torch.utils.cpp_extension import load, _import_module_from_library
 
 # if running GPEN without cuda, please comment line 11-19
-if platform.system() == 'Linux' and torch.cuda.is_available():
-    module_path = os.path.dirname(__file__)
-    fused = load(
-        'fused',
-        sources=[
-            os.path.join(module_path, 'fused_bias_act.cpp'),
-            os.path.join(module_path, 'fused_bias_act_kernel.cu'),
-        ],
-    )
-
-
-#fused = _import_module_from_library('fused', '/tmp/torch_extensions/fused', True)
-
+module_path = os.path.dirname(__file__)
+fused = load(
+    'fused',
+    sources=[
+        os.path.join(module_path, 'fused_bias_act.cpp'),
+        os.path.join(module_path, 'fused_bias_act_kernel.cu'),
+    ],
+)
 
 class FusedLeakyReLUFunctionBackward(Function):
     @staticmethod
@@ -90,7 +83,7 @@ class FusedLeakyReLU(nn.Module):
 
 
 def fused_leaky_relu(input, bias, negative_slope=0.2, scale=2 ** 0.5, device='cpu'):
-    if platform.system() == 'Linux' and torch.cuda.is_available() and device != 'cpu':
+    if torch.cuda.is_available() and device != 'cpu':
         return FusedLeakyReLUFunction.apply(input, bias, negative_slope, scale)
     else:
         return scale * F.leaky_relu(input + bias.view((1, -1)+(1,)*(len(input.shape)-2)), negative_slope=negative_slope)
