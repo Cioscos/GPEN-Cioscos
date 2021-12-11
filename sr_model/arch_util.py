@@ -8,6 +8,7 @@ from torch.nn.modules.batchnorm import _BatchNorm
 @torch.no_grad()
 def default_init_weights(module_list, scale=1, bias_fill=0, **kwargs):
     """Initialize network weights.
+
     Args:
         module_list (list[nn.Module] | nn.Module): Modules to be initialized.
         scale (float): Scale initialized weights, especially for residual
@@ -37,9 +38,11 @@ def default_init_weights(module_list, scale=1, bias_fill=0, **kwargs):
 
 def make_layer(basic_block, num_basic_block, **kwarg):
     """Make layers by stacking the same blocks.
+
     Args:
         basic_block (nn.module): nn.module class for basic block.
         num_basic_block (int): number of blocks.
+
     Returns:
         nn.Sequential: Stacked blocks in nn.Sequential.
     """
@@ -51,9 +54,11 @@ def make_layer(basic_block, num_basic_block, **kwarg):
 
 class ResidualBlockNoBN(nn.Module):
     """Residual block without BN.
+
     It has a style of:
         ---Conv-ReLU-Conv-+-
          |________________|
+
     Args:
         num_feat (int): Channel number of intermediate features.
             Default: 64.
@@ -80,6 +85,7 @@ class ResidualBlockNoBN(nn.Module):
 
 class Upsample(nn.Sequential):
     """Upsample module.
+
     Args:
         scale (int): Scale factor. Supported scales: 2^n and 3.
         num_feat (int): Channel number of intermediate features.
@@ -99,12 +105,14 @@ class Upsample(nn.Sequential):
                              'Supported scales: 2^n and 3.')
         super(Upsample, self).__init__(*m)
 
-#TODO: may write a cpp file
+# TODO: may write a cpp file
 def pixel_unshuffle(x, scale):
     """ Pixel unshuffle.
+
     Args:
         x (Tensor): Input feature with shape (b, c, hh, hw).
         scale (int): Downsample ratio.
+
     Returns:
         Tensor: the pixel unshuffled feature.
     """

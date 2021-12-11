@@ -7,7 +7,9 @@ from arch_util import default_init_weights, make_layer, pixel_unshuffle
 
 class ResidualDenseBlock(nn.Module):
     """Residual Dense Block.
+
     Used in RRDB block in ESRGAN.
+
     Args:
         num_feat (int): Channel number of intermediate features.
         num_grow_ch (int): Channels for each growth.
@@ -38,7 +40,9 @@ class ResidualDenseBlock(nn.Module):
 
 class RRDB(nn.Module):
     """Residual in Residual Dense Block.
+
     Used in RRDB-Net in ESRGAN.
+
     Args:
         num_feat (int): Channel number of intermediate features.
         num_grow_ch (int): Channels for each growth.
@@ -60,11 +64,14 @@ class RRDB(nn.Module):
 class RRDBNet(nn.Module):
     """Networks consisting of Residual in Residual Dense Block, which is used
     in ESRGAN.
+
     ESRGAN: Enhanced Super-Resolution Generative Adversarial Networks.
+
     We extend ESRGAN for scale x2 and scale x1.
     Note: This is one option for scale 1, scale 2 in RRDBNet.
     We first employ the pixel-unshuffle (an inverse operation of pixelshuffle to reduce the spatial size
     and enlarge the channel size before feeding inputs into the main ESRGAN architecture.
+
     Args:
         num_in_ch (int): Channel number of inputs.
         num_out_ch (int): Channel number of outputs.

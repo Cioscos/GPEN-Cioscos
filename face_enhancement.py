@@ -9,11 +9,11 @@ import argparse
 from io import BytesIO
 import numpy as np
 import __init_paths
-from retinaface.retinaface_detection import RetinaFaceDetection
+from face_detect.retinaface_detection import RetinaFaceDetection
+from face_parse.face_parsing import FaceParse
 from face_model.face_gan import FaceGAN
 from sr_model.real_esrnet import RealESRNet
 from align_faces import warp_and_crop_face, get_reference_facial_points
-from skimage import transform as tf
 from DFLIMG.DFLJPG import DFLJPG
 
 import warnings
@@ -21,10 +21,11 @@ warnings.filterwarnings('ignore')
 
 
 class FaceEnhancement(object):
-    def __init__(self, base_dir='./', size=512, model=None, use_sr=True, sr_model=None, channel_multiplier=2, narrow=1):
-        self.facedetector = RetinaFaceDetection(base_dir)
-        self.facegan = FaceGAN(base_dir, size, model, channel_multiplier, narrow)
-        self.srmodel = RealESRNet(base_dir, sr_model)
+    def __init__(self, base_dir='./', size=512, model=None, use_sr=True, sr_model=None, channel_multiplier=2, narrow=1, device='cuda'):
+        self.facedetector = RetinaFaceDetection(base_dir, device)
+        self.facegan = FaceGAN(base_dir, size, model, channel_multiplier, narrow, device=device)
+        self.srmodel =  RealESRNet(base_dir, sr_model, device=device)
+        self.faceparser = FaceParse(base_dir, device=device)
         self.use_sr = use_sr
         self.size = size
         self.threshold = 0.9
@@ -46,6 +47,13 @@ class FaceEnhancement(object):
         outer_padding = (0, 0)
         self.reference_5pts = get_reference_facial_points(
             (self.size, self.size), inner_padding_factor, outer_padding, default_square)
+
+    def mask_postprocess(self, mask, thres=20):
+        mask[:thres, :] = 0; mask[-thres:, :] = 0
+        mask[:, :thres] = 0; mask[:, -thres:] = 0
+        mask = cv2.GaussianBlur(mask, (101, 101), 11)
+        mask = cv2.GaussianBlur(mask, (101, 101), 11)
+        return mask.astype(np.float32)
 
     def process(self, img):
         if self.use_sr:
@@ -75,7 +83,8 @@ class FaceEnhancement(object):
             orig_faces.append(of)
             enhanced_faces.append(ef)
 
-            tmp_mask = self.mask
+            #tmp_mask = self.mask
+            tmp_mask = self.mask_postprocess(self.faceparser.process(ef)[0]/255.)
             tmp_mask = cv2.resize(tmp_mask, ef.shape[:2])
             tmp_mask = cv2.warpAffine(tmp_mask, tfm_inv, (width, height), flags=3)
 
@@ -131,6 +140,7 @@ def main():
     parser.add_argument('--channel_multiplier', type=int, default=2, help='channel multiplier of GPEN')
     parser.add_argument('--narrow', type=float, default=1, help='channel narrow scale')
     parser.add_argument('--use_sr', action='store_true', help='use sr or not')
+    parser.add_argument('--use_cuda', action='store_true', help='use cuda or not')
     parser.add_argument('--sr_model', type=str, default='rrdb_realesrnet_psnr', help='SR model')
     parser.add_argument('--sr_scale', type=int, default=2, help='SR scale')
     parser.add_argument('--indir', type=str, default='examples/imgs', help='input folder')
@@ -145,7 +155,8 @@ def main():
         use_sr=args.use_sr,
         sr_model=args.sr_model,
         channel_multiplier=args.channel_multiplier,
-        narrow=args.narrow
+        narrow=args.narrow,
+        device='cuda' if args.use_cuda else 'cpu'
     )
 
     imgPaths = make_dataset(args.indir)
