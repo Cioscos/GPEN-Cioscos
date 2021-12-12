@@ -1,19 +1,21 @@
 import os
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 from torch.autograd import Function
 from torch.utils.cpp_extension import load, _import_module_from_library
 
 # if running GPEN without cuda, please comment line 11-19
 module_path = os.path.dirname(__file__)
-fused = load(
-    'fused',
-    sources=[
-        os.path.join(module_path, 'fused_bias_act.cpp'),
-        os.path.join(module_path, 'fused_bias_act_kernel.cu'),
-    ],
-)
+if torch.cuda.is_available():
+    fused = load(
+        'fused',
+        sources=[
+            os.path.join(module_path, 'fused_bias_act.cpp'),
+            os.path.join(module_path, 'fused_bias_act_kernel.cu'),
+        ],
+    )
 
 class FusedLeakyReLUFunctionBackward(Function):
     @staticmethod

@@ -1,6 +1,7 @@
 import os
 
 import torch
+import torch.nn.functional as F
 from torch.autograd import Function
 from torch.utils.cpp_extension import load, _import_module_from_library
 
