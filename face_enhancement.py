@@ -143,7 +143,7 @@ def main():
     parser.add_argument('--use_cuda', action='store_true', help='use cuda or not')
     parser.add_argument('--sr_model', type=str, default='rrdb_realesrnet_psnr', help='SR model')
     parser.add_argument('--sr_scale', type=int, default=2, help='SR scale')
-    parser.add_argument('--indir', type=str, default='examples/imgs', help='input folder')
+    parser.add_argument('--indir', type=str, default='input/imgs', help='input folder')
     parser.add_argument('--outdir', type=str, default='results/outs-enhanced', help='output folder')
     args = parser.parse_args()
 

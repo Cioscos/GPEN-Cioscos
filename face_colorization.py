@@ -52,7 +52,7 @@ def main():
     parser.add_argument('--model', type=str, default='GPEN-Colorization-1024', help='GPEN model')
     parser.add_argument('--size', type=int, default=1024, help='resolution of GPEN')
     parser.add_argument('--channel_multiplier', type=int, default=2, help='channel multiplier of GPEN')
-    parser.add_argument('--indir', type=str, default='examples/grays', help='input folder')
+    parser.add_argument('--indir', type=str, default='input/grays', help='input folder')
     parser.add_argument('--outdir', type=str, default='results/outs-colorization', help='output folder')
     args = parser.parse_args()
 
