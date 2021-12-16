@@ -127,7 +127,7 @@ dmypy.json
 cython_debug/
 
 _internal
-examples
+input
 results
 weights
 *.bat
