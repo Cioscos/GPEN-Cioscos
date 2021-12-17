@@ -88,4 +88,4 @@ if len(download_urls) != 0:
     with ThreadPoolExecutor() as executor:
         executor.map(download_weight, download_urls)
 else:
-    print('All files are downloaded already')
+    print('All weights are already downloaded')
