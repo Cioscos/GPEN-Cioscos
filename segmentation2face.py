@@ -10,6 +10,7 @@ import time
 import numpy as np
 from PIL import Image
 import __init_paths
+import __download_weights
 from face_model.face_gan import FaceGAN
 
 class Segmentation2Face(object):

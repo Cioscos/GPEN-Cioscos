@@ -9,6 +9,7 @@ import argparse
 from io import BytesIO
 import numpy as np
 import __init_paths
+import __download_weights
 from face_detect.retinaface_detection import RetinaFaceDetection
 from face_parse.face_parsing import FaceParse
 from face_model.face_gan import FaceGAN

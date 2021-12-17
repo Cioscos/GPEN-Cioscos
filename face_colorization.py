@@ -8,6 +8,7 @@ import cv2
 import argparse
 from io import BytesIO
 import __init_paths
+import __download_weights
 from face_model.face_gan import FaceGAN
 from DFLIMG.DFLJPG import DFLJPG
 
