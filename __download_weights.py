@@ -89,3 +89,5 @@ if len(download_urls) != 0:
         executor.map(download_weight, download_urls)
 else:
     print('All weights are already downloaded')
+
+print('GPEN is compiling C++/CUDA Pytorch extensions. Please wait, it might take a while.')
