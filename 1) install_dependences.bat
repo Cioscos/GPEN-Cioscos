@@ -8,6 +8,7 @@ opencv-python ^
 matplotlib ^
 scipy ^
 pillow ^
+requests ^
 tqdm
 
 pause
