@@ -38,16 +38,16 @@ class FaceEnhancement(object):
         self.mask = cv2.GaussianBlur(self.mask, (101, 101), 11)
 
         self.kernel = np.array((
-            [0.0625, 0.125, 0.0625],
-            [0.125, 0.25, 0.125],
-            [0.0625, 0.125, 0.0625]), dtype="float32")
+                [0.0625, 0.125, 0.0625],
+                [0.125, 0.25, 0.125],
+                [0.0625, 0.125, 0.0625]), dtype="float32")
 
         # get the reference 5 landmarks position in the crop settings
         default_square = True
         inner_padding_factor = 0.25
         outer_padding = (0, 0)
         self.reference_5pts = get_reference_facial_points(
-            (self.size, self.size), inner_padding_factor, outer_padding, default_square)
+                (self.size, self.size), inner_padding_factor, outer_padding, default_square)
 
     def mask_postprocess(self, mask, thres=20):
         mask[:thres, :] = 0; mask[-thres:, :] = 0
@@ -63,40 +63,39 @@ class FaceEnhancement(object):
                 img = cv2.resize(img, img_sr.shape[:2][::-1])
 
         facebs, landms = self.facedetector.detect(img)
-
+        
         orig_faces, enhanced_faces = [], []
         height, width = img.shape[:2]
         full_mask = np.zeros((height, width), dtype=np.float32)
         full_img = np.zeros(img.shape, dtype=np.uint8)
 
         for i, (faceb, facial5points) in enumerate(zip(facebs, landms)):
-            if faceb[4] < self.threshold: continue
-            fh, fw = (faceb[3] - faceb[1]), (faceb[2] - faceb[0])
+            if faceb[4]<self.threshold: continue
+            fh, fw = (faceb[3]-faceb[1]), (faceb[2]-faceb[0])
 
             facial5points = np.reshape(facial5points, (2, 5))
 
-            of, tfm_inv = warp_and_crop_face(img, facial5points, reference_pts=self.reference_5pts,
-                                             crop_size=(self.size, self.size))
-
+            of, tfm_inv = warp_and_crop_face(img, facial5points, reference_pts=self.reference_5pts, crop_size=(self.size, self.size))
+            
             # enhance the face
             ef = self.facegan.process(of)
-
+            
             orig_faces.append(of)
             enhanced_faces.append(ef)
-
+            
             #tmp_mask = self.mask
             tmp_mask = self.mask_postprocess(self.faceparser.process(ef)[0]/255.)
             tmp_mask = cv2.resize(tmp_mask, ef.shape[:2])
             tmp_mask = cv2.warpAffine(tmp_mask, tfm_inv, (width, height), flags=3)
 
-            if min(fh, fw) < 100:  # gaussian filter for small faces
+            if min(fh, fw)<100: # gaussian filter for small faces
                 ef = cv2.filter2D(ef, -1, self.kernel)
-
+            
             tmp_img = cv2.warpAffine(ef, tfm_inv, (width, height), flags=3)
 
             mask = tmp_mask - full_mask
-            full_mask[np.where(mask > 0)] = tmp_mask[np.where(mask > 0)]
-            full_img[np.where(mask > 0)] = tmp_img[np.where(mask > 0)]
+            full_mask[np.where(mask>0)] = tmp_mask[np.where(mask>0)]
+            full_img[np.where(mask>0)] = tmp_img[np.where(mask>0)]
 
         full_mask = full_mask[:, :, np.newaxis]
         if self.use_sr and img_sr is not None:

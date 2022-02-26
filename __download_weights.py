@@ -14,25 +14,26 @@ WEIGHTS_PATH = Path('.\weights')
 WEIGHTS_EXTENSIONS = ['.pth', '.ckpt']
 
 weights_urls = {
-    'RetinaFace-R50'         : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/RetinaFace-R50.pth',
-    'ParseNet-latest'        : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/ParseNet-latest.pth',
-    'model_ir_se50'          : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/model_ir_se50.pth',
-    'GPEN-BFR-512'           : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-512.pth',
-    'GPEN-BFR-512-D'         : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-512-D.pth',
-    'GPEN-BFR-256'           : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-256.pth',
-    'GPEN-BFR-256-D'         : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-256-D.pth',
-    'GPEN-Colorization-1024' : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-Colorization-1024.pth',
-    'GPEN-Inpainting-1024'   : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-Inpainting-1024.pth',
-    'GPEN-Seg2face-512'      : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-Seg2face-512.pth',
-    'rrdb_realesrnet_psnr'   : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/rrdb_realesrnet_psnr.pth'
+    'RetinaFace-R50'         : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/RetinaFace-R50.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116085&Signature=GlUNW6%2B8FxvxWmE9jKIZYOOciKQ%3D',
+    'ParseNet-latest'        : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/ParseNet-latest.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116134&Signature=bnMwU1JogmNbARto6G%2B7iaJQCHs%3D',
+    'model_ir_se50'          : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/model_ir_se50.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116170&Signature=jEyBslytwpWoh5DfKvYe2H31GgE%3D',
+    'GPEN-BFR-512'           : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-512.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116208&Signature=hBgvVvKVSNGeXqT8glG%2Bd2t2OKc%3D',
+    'GPEN-BFR-512-D'         : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-512-D.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116234&Signature=mP7MvYhKjbsIM2lhmuaEysssWpc%3D',
+    'GPEN-BFR-256'           : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-256.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116259&Signature=kMGJLSHqnvzzzqwtjUVBgngzX2s%3D',
+    'GPEN-BFR-256-D'         : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-BFR-256-D.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116288&Signature=b7NCfHFzyqKh%2BfaLrRCwMIIZ2HA%3D',
+    'GPEN-Colorization-1024' : "https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-Colorization-1024.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116315&Signature=9tPavW2h%2F1LhIKiXj73sTQoWqcc%3D",
+    'GPEN-Inpainting-1024'   : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-Inpainting-1024.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116338&Signature=tvYhdLaLgW7UdcUrApXp2jsek8w%3D',
+    'GPEN-Seg2face-512'      : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/GPEN-Seg2face-512.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116362&Signature=VOaHmjFy5YVBjMoNTpVk2KDJx9k%3D',
+    'rrdb_realesrnet_psnr'   : 'https://public-vigen-video.oss-cn-shanghai.aliyuncs.com/robin/models/rrdb_realesrnet_psnr.pth?OSSAccessKeyId=LTAI4G6bfnyW4TA4wFUXTYBe&Expires=1961116389&Signature=JZIBJOtfE5ePUyETslpDQsYwHpU%3D'
 }
 
-def download_weight(url: str):
-    weight_name = url.split('/')[-1]
+def download_weight(file: str):
+    weight_name = file.split('?')[0]
+    weight_name = weight_name.split('/')[-1]
     print(f'Downloading {weight_name}')
-    site = urlopen(url)
+    site = urlopen(file)
     meta = site.info()
-    response = requests.get(url, stream=True)
+    response = requests.get(file, stream=True)
     total_size_in_bytes = int(meta['Content-Length'])
     progress_bar = tqdm(total = total_size_in_bytes, unit='iB', unit_scale=True)
     with open(WEIGHTS_PATH / weight_name, 'wb') as f:
