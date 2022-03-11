@@ -13,15 +13,15 @@ from face_model.face_gan import FaceGAN
 from DFLIMG.DFLJPG import DFLJPG
 
 class FaceColorization(object):
-    def __init__(self, base_dir='./', size=1024, model=None, channel_multiplier=2):
-        self.facegan = FaceGAN(base_dir, size, model, channel_multiplier)
+    def __init__(self, base_dir='./', in_size=1024, out_size=1024, model=None, channel_multiplier=2, narrow=1, key=None, device='cuda'):
+        self.facegan = FaceGAN(base_dir, in_size, out_size, model, channel_multiplier, narrow, key, device=device)
 
     # make sure the face image is well aligned. Please refer to face_enhancement.py
-    def process(self, gray):
+    def process(self, gray, aligned=True):
         # colorize the face
         out = self.facegan.process(gray)
 
-        return out
+        return out, [gray], [out]
         
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -51,16 +51,19 @@ def make_dataset(dirs):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='GPEN-Colorization-1024', help='GPEN model')
-    parser.add_argument('--size', type=int, default=1024, help='resolution of GPEN')
+    parser.add_argument('--in_size', type=int, default=1024, help='in resolution of GPEN')
+    parser.add_argument('--out_size', type=int, default=None, help='out resolution of GPEN')
     parser.add_argument('--channel_multiplier', type=int, default=2, help='channel multiplier of GPEN')
     parser.add_argument('--indir', type=str, default='input/grays', help='input folder')
     parser.add_argument('--outdir', type=str, default='results/outs-colorization', help='output folder')
+    parser.add_argument('--aligned', action='store_true', help='If input are aligned images')
     args = parser.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
 
     facecolorizer = FaceColorization(
-        size=args.size,
+        in_size=args.in_size,
+        out_size=args.out_size,
         model=args.model,
         channel_multiplier=args.channel_multiplier
     )
@@ -85,11 +88,11 @@ def main():
         grayf = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
         grayf = cv2.cvtColor(grayf, cv2.COLOR_GRAY2BGR) # channel: 1->3
 
-        colorf = facecolorizer.process(grayf)
+        colorf, _, _= facecolorizer.process(grayf, args.aligned)
         colorf = cv2.resize(colorf, (grayf.shape[1], grayf.shape[0]))
  
         if is_dfl_image:
-            is_success, buffer = cv2.imencode('.jpg', colorf)
+            _, buffer = cv2.imencode('.jpg', colorf)
             img_byte_arr = BytesIO(buffer)
         else:
             cv2.imwrite(os.path.join(args.outdir, '.'.join(filename.split('.')[:-1])+'.jpg'), colorf)

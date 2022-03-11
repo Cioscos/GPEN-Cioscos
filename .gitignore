@@ -130,7 +130,4 @@ _internal
 input
 results
 weights
-*.bat
-!1) install_dependences.bat
-!misc) Install or update GPEN.bat
 README.txt

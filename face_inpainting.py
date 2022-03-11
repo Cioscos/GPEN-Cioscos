@@ -66,29 +66,32 @@ def brush_stroke_mask(img, color=(255,255,255)):
     return mask
 
 class FaceInpainting(object):
-    def __init__(self, base_dir='./', size=1024, model=None, channel_multiplier=2):
-        self.facegan = FaceGAN(base_dir, size, model, channel_multiplier)
+    def __init__(self, base_dir='./', in_size=1024, out_size=1024, model=None, channel_multiplier=2, narrow=1, key=None, device='cuda'):
+        self.facegan = FaceGAN(base_dir, in_size, out_size, model, channel_multiplier, narrow, key, device=device)
 
     # make sure the face image is well aligned. Please refer to face_enhancement.py
-    def process(self, brokenf):
+    def process(self, brokenf, aligned=True):
         # complete the face
         out = self.facegan.process(brokenf)
 
-        return out
+        return out, [brokenf], [out]
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='GPEN-Inpainting-1024', help='GPEN model')
-    parser.add_argument('--size', type=int, default=1024, help='resolution of GPEN')
+    parser.add_argument('--in_size', type=int, default=1024, help='in resolution of GPEN')
+    parser.add_argument('--out_size', type=int, default=None, help='out resolution of GPEN')
     parser.add_argument('--channel_multiplier', type=int, default=2, help='channel multiplier of GPEN')
     parser.add_argument('--indir', type=str, default='input/inpainting', help='input folder')
     parser.add_argument('--outdir', type=str, default='results/outs-inpainting', help='output folder')
+    parser.add_argument('--aligned', action='store_true', help='If input are aligned images')
     args = parser.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
 
     faceinpainter = FaceInpainting(
-        size=args.size,
+        in_size=args.in_size,
+        out_size=args.out_size,
         model=args.model,
         channel_multiplier=args.channel_multiplier
     )
@@ -101,7 +104,7 @@ def main():
         
         brokenf = np.asarray(brush_stroke_mask(Image.fromarray(originf)))
 
-        completef = faceinpainter.process(brokenf)
+        completef, _, _= faceinpainter.process(brokenf, args.aligned)
         
         originf = cv2.resize(originf, completef.shape[:2])
         brokenf = cv2.resize(brokenf, completef.shape[:2])
