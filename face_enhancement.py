@@ -22,14 +22,14 @@ warnings.filterwarnings('ignore')
 
 
 class FaceEnhancement(object):
-    def __init__(self, base_dir='./', in_size=512, out_size=None, model=None, use_sr=True, sr_model=None, channel_multiplier=2, narrow=1, key=None, device='cuda'):
+    def __init__(self, base_dir='./', in_size=512, out_size=None, model=None, use_sr=True, sr_model=None, sr_scale=2, channel_multiplier=2, narrow=1, key=None, device='cuda'):
         self.facedetector = RetinaFaceDetection(base_dir, device)
         self.facegan = FaceGAN(base_dir, in_size, out_size, model, channel_multiplier, narrow, key, device=device)
-        self.srmodel =  RealESRNet(base_dir, sr_model, device=device)
+        self.srmodel =  RealESRNet(base_dir, sr_model, sr_scale, device=device)
         self.faceparser = FaceParse(base_dir, device=device)
         self.use_sr = use_sr
         self.in_size = in_size
-        self.out_size = out_size
+        self.out_size = in_size if out_size is None else out_size
         self.threshold = 0.9
 
         # the mask for pasting restored faces back
@@ -156,7 +156,7 @@ def main():
     parser.add_argument('--narrow', type=float, default=1, help='channel narrow scale')
     parser.add_argument('--use_sr', action='store_true', help='use sr or not')
     parser.add_argument('--use_cuda', action='store_true', help='use cuda or not')
-    parser.add_argument('--sr_model', type=str, default='rrdb_realesrnet_psnr', help='SR model')
+    parser.add_argument('--sr_model', type=str, default='realesrnet', help='SR model')
     parser.add_argument('--sr_scale', type=int, default=2, help='SR scale')
     parser.add_argument('--aligned', action='store_true', help='If input are aligned images')
     parser.add_argument('--indir', type=str, default='input/imgs', help='input folder')
@@ -171,6 +171,7 @@ def main():
         model=args.model,
         use_sr=args.use_sr,
         sr_model=args.sr_model,
+        sr_scale=args.sr_scale,
         channel_multiplier=args.channel_multiplier,
         narrow=args.narrow,
         key=args.key,
