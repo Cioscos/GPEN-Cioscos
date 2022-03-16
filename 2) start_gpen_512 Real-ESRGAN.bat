@@ -5,6 +5,7 @@ call _internal\setenv.bat
 --model GPEN-BFR-512 ^
 --in_size 512 ^
 --use_sr ^
+--sr_scale 4 ^
 --use_cuda
 
 pause
