@@ -22,10 +22,10 @@ warnings.filterwarnings('ignore')
 
 
 class FaceEnhancement(object):
-    def __init__(self, base_dir='./', in_size=512, out_size=None, model=None, use_sr=True, sr_model=None, sr_scale=2, channel_multiplier=2, narrow=1, key=None, device='cuda'):
+    def __init__(self, base_dir='./', in_size=512, out_size=None, model=None, use_sr=True, sr_model=None, sr_scale=2, tile_size=0, channel_multiplier=2, narrow=1, key=None, device='cuda'):
         self.facedetector = RetinaFaceDetection(base_dir, device)
         self.facegan = FaceGAN(base_dir, in_size, out_size, model, channel_multiplier, narrow, key, device=device)
-        self.srmodel =  RealESRNet(base_dir, sr_model, sr_scale, device=device)
+        self.srmodel =  RealESRNet(base_dir, sr_model, sr_scale, tile_size, device=device)
         self.faceparser = FaceParse(base_dir, device=device)
         self.use_sr = use_sr
         self.in_size = in_size
@@ -158,6 +158,7 @@ def main():
     parser.add_argument('--use_cuda', action='store_true', help='use cuda or not')
     parser.add_argument('--sr_model', type=str, default='realesrnet', help='SR model')
     parser.add_argument('--sr_scale', type=int, default=2, help='SR scale')
+    parser.add_argument('--tile_size', type=int, default=0, help='tile size for SR to avoid OOM')
     parser.add_argument('--aligned', action='store_true', help='If input are aligned images')
     parser.add_argument('--indir', type=str, default='input/imgs', help='input folder')
     parser.add_argument('--outdir', type=str, default='results/outs-enhanced', help='output folder')
@@ -172,6 +173,7 @@ def main():
         use_sr=args.use_sr,
         sr_model=args.sr_model,
         sr_scale=args.sr_scale,
+        tile_size=args.tile_size,
         channel_multiplier=args.channel_multiplier,
         narrow=args.narrow,
         key=args.key,
