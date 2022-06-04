@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
@@ -6,16 +7,35 @@ from torch import nn
 from torch.autograd import Function
 from torch.utils.cpp_extension import load, _import_module_from_library
 
-# if running GPEN without cuda, please comment line 11-19
-module_path = os.path.dirname(__file__)
-if torch.cuda.is_available():
-    fused = load(
-        'fused',
-        sources=[
-            os.path.join(module_path, 'fused_bias_act.cpp'),
-            os.path.join(module_path, 'fused_bias_act_kernel.cu'),
-        ],
-    )
+TEMP_GPU_FILE_NAME = 'gpu_name.txt'
+
+compile = False
+
+# save last choosed device on a txt file
+temp_gpu_name_path = Path(os.environ['localappdata'], f'GPEN_temp/{TEMP_GPU_FILE_NAME}')
+
+if Path.exists(temp_gpu_name_path):
+    with open(temp_gpu_name_path, 'r') as f:
+        gpu_name = f.readline()
+    if torch.cuda.get_device_name(torch.cuda.current_device()) != gpu_name:
+        with open(temp_gpu_name_path, 'w') as f:
+            f.write(torch.cuda.get_device_name(torch.cuda.current_device()))
+        compile = True
+
+if compile:
+    # if running GPEN without cuda, please comment line 11-19
+    module_path = os.path.dirname(__file__)
+    if torch.cuda.is_available():
+        fused = load(
+            'fused',
+            sources=[
+                os.path.join(module_path, 'fused_bias_act.cpp'),
+                os.path.join(module_path, 'fused_bias_act_kernel.cu'),
+            ],
+        )
+else:
+    module_path = Path(os.environ['localappdata'] + '/torch_extensions/torch_extensions/Cache/fused')
+    fused = _import_module_from_library('fused', module_path, True)
 
 class FusedLeakyReLUFunctionBackward(Function):
     @staticmethod

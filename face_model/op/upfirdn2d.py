@@ -1,20 +1,41 @@
 import os
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 from torch.autograd import Function
 from torch.utils.cpp_extension import load, _import_module_from_library
 
-# if running GPEN without cuda, please comment line 10-18
-if torch.cuda.is_available():
-    module_path = os.path.dirname(__file__)
-    upfirdn2d_op = load(
-        'upfirdn2d',
-        sources=[
-            os.path.join(module_path, 'upfirdn2d.cpp'),
-            os.path.join(module_path, 'upfirdn2d_kernel.cu'),
-        ],
-    )
+TEMP_GPU_FILE_NAME = 'gpu_name.txt'
+
+compile = False
+
+# save last choosed device on a txt file
+temp_gpu_name_path = Path(os.environ['localappdata'], f'GPEN_temp/{TEMP_GPU_FILE_NAME}')
+
+if Path.exists(temp_gpu_name_path):
+    with open(temp_gpu_name_path, 'r') as f:
+        gpu_name = f.readline()
+    if torch.cuda.get_device_name(torch.cuda.current_device()) != gpu_name:
+        with open(temp_gpu_name_path, 'w') as f:
+            f.write(torch.cuda.get_device_name(torch.cuda.current_device()))
+        compile = True
+
+if compile:
+    # if running GPEN without cuda, please comment line 10-18
+    if torch.cuda.is_available():
+        module_path = os.path.dirname(__file__)
+        upfirdn2d_op = load(
+            'upfirdn2d',
+            sources=[
+                os.path.join(module_path, 'upfirdn2d.cpp'),
+                os.path.join(module_path, 'upfirdn2d_kernel.cu'),
+            ],
+        )
+else:
+    module_path = Path(os.environ['localappdata'] + '/torch_extensions/torch_extensions/Cache/upfirdn2d')
+    upfirdn2d_op = _import_module_from_library('upfirdn2d', module_path, True)
+
 
 class UpFirDn2dBackward(Function):
     @staticmethod

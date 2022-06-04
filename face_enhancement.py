@@ -7,6 +7,7 @@ import re
 import cv2
 import argparse
 import torch
+from pathlib import Path
 from io import BytesIO
 import numpy as np
 import __init_paths
@@ -128,7 +129,6 @@ IMG_EXTENSIONS = [
     '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP',
 ]
 
-
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
 
@@ -189,6 +189,8 @@ def main():
                 break
 
         cuda_device = f"cuda:{gpu_index}"
+        #torch.cuda.set_device(gpu_index)
+
     else:
         print('Using CPU')
 
