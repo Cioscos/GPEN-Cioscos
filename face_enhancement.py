@@ -6,6 +6,7 @@ import os
 import re
 import cv2
 import argparse
+import torch
 from io import BytesIO
 import numpy as np
 import __init_paths
@@ -22,21 +23,22 @@ warnings.filterwarnings('ignore')
 
 
 class FaceEnhancement(object):
-    def __init__(self, base_dir='./', in_size=512, out_size=None, model=None, use_sr=True, sr_model=None, sr_scale=2, tile_size=0, channel_multiplier=2, narrow=1, key=None, device='cuda'):
+    def __init__(self, args, base_dir='./', in_size=512, out_size=None, model=None, use_sr=True, device='cuda'):
         self.facedetector = RetinaFaceDetection(base_dir, device)
-        self.facegan = FaceGAN(base_dir, in_size, out_size, model, channel_multiplier, narrow, key, device=device)
-        self.srmodel =  RealESRNet(base_dir, sr_model, sr_scale, tile_size, device=device)
+        self.facegan = FaceGAN(base_dir, in_size, out_size, model, args.channel_multiplier, args.narrow, args.key, device=device)
+        self.srmodel =  RealESRNet(base_dir, args.sr_model, args.sr_scale, args.tile_size, device=device)
         self.faceparser = FaceParse(base_dir, device=device)
         self.use_sr = use_sr
         self.in_size = in_size
         self.out_size = in_size if out_size is None else out_size
         self.threshold = 0.9
+        self.alpha = args.alpha
 
         # the mask for pasting restored faces back
         self.mask = np.zeros((512, 512), np.float32)
         cv2.rectangle(self.mask, (26, 26), (486, 486), (1, 1, 1), -1, cv2.LINE_AA)
-        self.mask = cv2.GaussianBlur(self.mask, (101, 101), 11)
-        self.mask = cv2.GaussianBlur(self.mask, (101, 101), 11)
+        self.mask = cv2.GaussianBlur(self.mask, (101, 101), 4)
+        self.mask = cv2.GaussianBlur(self.mask, (101, 101), 4)
 
         self.kernel = np.array((
                 [0.0625, 0.125, 0.0625],
@@ -50,11 +52,11 @@ class FaceEnhancement(object):
         self.reference_5pts = get_reference_facial_points(
                 (self.in_size, self.in_size), inner_padding_factor, outer_padding, default_square)
 
-    def mask_postprocess(self, mask, thres=20):
+    def mask_postprocess(self, mask, thres=26):
         mask[:thres, :] = 0; mask[-thres:, :] = 0
         mask[:, :thres] = 0; mask[:, -thres:] = 0
-        mask = cv2.GaussianBlur(mask, (101, 101), 11)
-        mask = cv2.GaussianBlur(mask, (101, 101), 11)
+        mask = cv2.GaussianBlur(mask, (101, 101), 4)
+        mask = cv2.GaussianBlur(mask, (101, 101), 4)
         return mask.astype(np.float32)
 
     def process(self, img, aligned=False):
@@ -99,8 +101,10 @@ class FaceEnhancement(object):
             tmp_mask = cv2.resize(tmp_mask, (self.in_size, self.in_size))
             tmp_mask = cv2.warpAffine(tmp_mask, tfm_inv, (width, height), flags=3)
 
-            if min(fh, fw)<100: # gaussian filter for small faces
+            if min(fh, fw) < 100: # gaussian filter for small faces
                 ef = cv2.filter2D(ef, -1, self.kernel)
+
+            ef = cv2.addWeighted(ef, self.alpha, of, 1.-self.alpha, 0.0)
             
             if self.in_size!=self.out_size:
                 ef = cv2.resize(ef, (self.in_size, self.in_size))
@@ -154,6 +158,7 @@ def main():
     parser.add_argument('--out_size', type=int, default=None, help='out resolution of GPEN')
     parser.add_argument('--channel_multiplier', type=int, default=2, help='channel multiplier of GPEN')
     parser.add_argument('--narrow', type=float, default=1, help='channel narrow scale')
+    parser.add_argument('--alpha', type=float, default=1, help='blending the results')
     parser.add_argument('--use_sr', action='store_true', help='use sr or not')
     parser.add_argument('--use_cuda', action='store_true', help='use cuda or not')
     parser.add_argument('--sr_model', type=str, default='realesrnet', help='SR model')
@@ -166,18 +171,34 @@ def main():
 
     os.makedirs(args.outdir, exist_ok=True)
 
+    # Show available CUDA devices
+    if args.use_cuda:
+        print('\n\nSelect the device to use:')
+
+        n_devices = torch.cuda.device_count()
+        devices_idxs = []
+        for i in range(n_devices):
+            print(f"[{i}] {torch.cuda.get_device_name(i)}")
+            devices_idxs.append(i)
+
+        while True:
+            gpu_index = int(input('Insert device index: '))
+            if gpu_index not in devices_idxs:
+                print('Select a valid index from the list!')
+            else:
+                break
+
+        cuda_device = f"cuda:{gpu_index}"
+    else:
+        print('Using CPU')
+
     faceenhancer = FaceEnhancement(
+        args,
         in_size=args.in_size,
         out_size=args.out_size,
         model=args.model,
         use_sr=args.use_sr,
-        sr_model=args.sr_model,
-        sr_scale=args.sr_scale,
-        tile_size=args.tile_size,
-        channel_multiplier=args.channel_multiplier,
-        narrow=args.narrow,
-        key=args.key,
-        device='cuda' if args.use_cuda else 'cpu'
+        device=cuda_device if args.use_cuda else 'cpu'
     )
 
     imgPaths = make_dataset(args.indir)
