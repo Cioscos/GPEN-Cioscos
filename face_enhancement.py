@@ -7,7 +7,6 @@ import re
 import cv2
 import argparse
 import torch
-from pathlib import Path
 from io import BytesIO
 import numpy as np
 import __init_paths
@@ -161,6 +160,7 @@ def main():
     parser.add_argument('--alpha', type=float, default=1, help='blending the results')
     parser.add_argument('--use_sr', action='store_true', help='use sr or not')
     parser.add_argument('--use_cuda', action='store_true', help='use cuda or not')
+    parser.add_argument('--device_idx', type=int, default=None, help="Device's index to use")
     parser.add_argument('--sr_model', type=str, default='realesrnet', help='SR model')
     parser.add_argument('--sr_scale', type=int, default=2, help='SR scale')
     parser.add_argument('--tile_size', type=int, default=0, help='tile size for SR to avoid OOM')
@@ -173,23 +173,24 @@ def main():
 
     # Show available CUDA devices
     if args.use_cuda:
-        print('\n\nSelect the device to use:')
+        if args.device_idx is None:
+            print('\n\nSelect the device to use:')
 
-        n_devices = torch.cuda.device_count()
-        devices_idxs = []
-        for i in range(n_devices):
-            print(f"[{i}] {torch.cuda.get_device_name(i)}")
-            devices_idxs.append(i)
+            n_devices = torch.cuda.device_count()
+            devices_idxs = []
+            for i in range(n_devices):
+                print(f"[{i}] {torch.cuda.get_device_name(i)}")
+                devices_idxs.append(i)
 
-        while True:
-            gpu_index = int(input('Insert device index: '))
-            if gpu_index not in devices_idxs:
-                print('Select a valid index from the list!')
-            else:
-                break
+            while True:
+                gpu_index = int(input('Insert device index: '))
+                if gpu_index not in devices_idxs:
+                    print('Select a valid index from the list!')
+                else:
+                    break
 
-        cuda_device = f"cuda:{gpu_index}"
-        #torch.cuda.set_device(gpu_index)
+        cuda_device = f"cuda:{gpu_index if args.device_idx is None else args.device_idx}"
+        torch.cuda.set_device(gpu_index if args.device_idx is None else args.device_idx)
 
     else:
         print('Using CPU')
