@@ -10,19 +10,7 @@ TEMP_GPU_FILE_NAME = 'gpu_name.txt'
 
 compile = False
 
-# save last choosed device on a txt file
-temp_gpu_name_path = Path(os.environ['localappdata'], f'GPEN_temp/{TEMP_GPU_FILE_NAME}')
-
-if Path.exists(temp_gpu_name_path):
-    with open(temp_gpu_name_path, 'r') as f:
-        gpu_name = f.readline()
-    if torch.cuda.get_device_name(torch.cuda.current_device()) != gpu_name:
-        with open(temp_gpu_name_path, 'w') as f:
-            f.write(torch.cuda.get_device_name(torch.cuda.current_device()))
-        compile = True
-
-if compile:
-    # if running GPEN without cuda, please comment line 10-18
+def compiler():
     if torch.cuda.is_available():
         module_path = os.path.dirname(__file__)
         upfirdn2d_op = load(
@@ -32,9 +20,42 @@ if compile:
                 os.path.join(module_path, 'upfirdn2d_kernel.cu'),
             ],
         )
+    return upfirdn2d_op
+
+# save last choosed device on a txt file
+# ---------------------------------------------
+temp_gpu_name_path = Path(os.environ['localappdata'] + f'/GPEN_temp/{TEMP_GPU_FILE_NAME}')
+
+# Check if file path exists
+if Path.exists(temp_gpu_name_path):
+    # if it exists, reads the GPU name from the file
+    with open(temp_gpu_name_path, 'r') as f:
+        gpu_name = f.readline()
+    # if the current gpu name is different from the saved gpu name
+    if torch.cuda.get_device_name(torch.cuda.current_device()) != gpu_name:
+        # save the new gpu name on the file
+        with open(temp_gpu_name_path, 'w') as f:
+            f.write(torch.cuda.get_device_name(torch.cuda.current_device()))
+        # and compile the C++/CUDA extensions
+        compile = True
+else:
+    # if the file doesn't exist, create the path to the file
+    os.makedirs(temp_gpu_name_path.parent, exist_ok=True)
+    # and it saves the current gpu name on the file
+    with open(temp_gpu_name_path, 'w') as f:
+        f.write(torch.cuda.get_device_name(torch.cuda.current_device()))
+    # and compile C++/CUDA extensions
+    compile = True
+
+if compile:
+    # if running GPEN without cuda, please comment line 10-18
+    upfirdn2d_op = compiler()
 else:
     module_path = Path(os.environ['localappdata'] + '/torch_extensions/torch_extensions/Cache/upfirdn2d')
-    upfirdn2d_op = _import_module_from_library('upfirdn2d', module_path, True)
+    try:
+        upfirdn2d_op = _import_module_from_library('upfirdn2d', module_path, True)
+    except:
+        upfirdn2d_op = compiler()
 
 
 class UpFirDn2dBackward(Function):
